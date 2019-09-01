@@ -1,0 +1,11 @@
+/datasets/**
+/saves/**
+*/**/__pycache__
+/tensorboard_log/**
+\.idea/
+
+*.directory
+
+!*.gitkeep
+
+

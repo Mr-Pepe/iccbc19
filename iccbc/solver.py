@@ -131,7 +131,7 @@ class Solver(object):
                     y_pred = model(x)
 
                     # Compute loss
-                    current_val_loss = binary_cross_entropy_with_logits(y_pred, y)
+                    current_val_loss = binary_cross_entropy(y_pred, y)
 
                 val_loss += current_val_loss.item()
 

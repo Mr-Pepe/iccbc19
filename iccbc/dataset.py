@@ -4,6 +4,8 @@ from torch.nn.functional import one_hot
 import torch
 import os
 import torchaudio as ta
+import matplotlib.pyplot as plt
+from iccbc.utils import moving_average, detect_leading_silence
 
 
 class CustomDataset(Dataset):
@@ -28,12 +30,16 @@ class CustomDataset(Dataset):
             # Find and add all audio files in directory
             for _, _, fnames in os.walk(path):
                 for fname in fnames:
-                    if (num_files % 100) == 0:
+                    if (num_files % 1) == 0:
                         print("\rFound {} sequences.".format(num_files), end='')
 
                     if fname.lower().endswith(('mp3', 'wav')):
                         waveform, sample_rate = ta.load(os.path.join(path, fname))
                         transformed = transform(waveform)
+                        # Remove silence from beginning of track
+                        transformed = remove_silence_start_end(transformed)
+                        # plt.plot(moving_average(transformed.t().numpy(), 10))
+                        # plt.show()
                         self.data.append(transformed.float())
                         num_files += 1
 
@@ -42,10 +48,18 @@ class CustomDataset(Dataset):
 
     def __getitem__(self, idx):
 
-        x = self.data[idx]
-        y = one_hot(self.data[idx].int().long(), 256).float().view(256, -1)
+        x = self.data[idx][0,:-1].view(1, -1)
+        y = one_hot(self.data[idx][0, 1:].int().long(), 256).float().view(256, -1)
 
         return x, y
 
     def __len__(self):
         return len(self.data)
+
+
+def remove_silence_start_end(sound):
+    # from https://stackoverflow.com/questions/29547218/remove-silence-at-the-beginning-and-at-the-end-of-wave-files-with-pydub
+    start_idx = detect_leading_silence(sound)
+    end_idx = detect_leading_silence(sound.flip([1]))
+
+    return sound[0, start_idx:-end_idx].view(1, -1)

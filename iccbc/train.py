@@ -26,8 +26,7 @@ def train(config):
         print("No GPU. Training on {}.".format(device))
 
     print("Loading dataset from ".format(config.dataset_path))
-    dataset = CustomDataset(config.dataset_path, transform=ta.transforms.MuLawEncoding(), override=False,
-                            padding=config.padding)
+    dataset = CustomDataset(config.dataset_path, transform=ta.transforms.MuLawEncoding(), override=False)
 
     if config.batch_size > len(dataset):
         raise Exception('Batch size bigger than the dataset.')

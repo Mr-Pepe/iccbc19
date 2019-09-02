@@ -1,7 +1,9 @@
 import torch
 from torchaudio.datasets import YESNO
 import torchaudio as ta
-
+from iccbc.model import WaveNet
+from iccbc.solver import Solver
+from iccbc.dataset import CustomDataset
 from torch.utils.data import DataLoader, SequentialSampler, SubsetRandomSampler
 
 
@@ -23,10 +25,9 @@ def train(config):
         kwargs = {}
         print("No GPU. Training on {}.".format(device))
 
-    # Load dataset
-    print("Loading dataset from ".format())
-
-    dataset = YESNO(config.dataset_path, transform=ta.transforms.MuLawEncoding(), download=True, dev_mode=True)
+    print("Loading dataset from ".format(config.dataset_path))
+    dataset = CustomDataset(config.dataset_path, transform=ta.transforms.MuLawEncoding(), override=False,
+                            padding=config.padding)
 
     if config.batch_size > len(dataset):
         raise Exception('Batch size bigger than the dataset.')
@@ -71,27 +72,26 @@ def train(config):
         **kwargs
     )
 
-    """ Initialize model and solver """
+    print("Initializing model and solver ...")
+    model = WaveNet()
+    solver = Solver()
 
     if config.continue_training:
         print("Continuing training with model: {} and solver: {}".format(
             config.model_path, config.solver_path)
         )
 
-        model = torch.load(config['model_path'])
+        model.load_state_dict(torch.load(config.model_path))
         model.to(device)
-        solver = Solver()
+
         solver.optim = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
-        solver.load(config['solver_path'], device=device)
+        solver.load(config.solver_path, device=device)
         optimizer = None
 
     else:
-        print("Initializing model...")
-        model = 1
-        solver = Solver()
         optimizer = torch.optim.Adam(model.parameters(), lr=config.learning_rate)
 
-    """ Perform training """
+    # Perform training
     solver.train(model=model,
                  train_config=config,
                  tensorboard_path=config.tensorboard_log_dir,
@@ -103,4 +103,5 @@ def train(config):
                  log_after_iters=config.log_interval,
                  save_after_epochs=config.save_interval,
                  save_path=config.save_path,
-                 device=device)
+                 device=device,
+                 do_overfitting=config.do_overfitting)

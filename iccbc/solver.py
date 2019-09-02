@@ -1,12 +1,14 @@
 import datetime
 import os
 import time
+from torch.nn.functional import binary_cross_entropy
 
 from iccbc.utils import time_left
 
 import torch
 
 from tensorboardX import SummaryWriter
+
 
 class Solver(object):
 
@@ -32,10 +34,9 @@ class Solver(object):
         save_after_epochs=None,
         save_path='../saves/train',
         device='cpu',
+        do_overfitting=False
     ):
         self.train_config = train_config
-
-        model.to(device)
 
         if self.epoch == 0:
             self.optim = optim
@@ -71,19 +72,21 @@ class Solver(object):
 
             # Set model to train mode
             model.train()
+            model.to(device)
 
             for i_iter_in_epoch, batch in enumerate(train_loader):
                 t_start_iter = time.time()
                 i_iter += 1
 
-                x = batch
+                x, y = batch
                 x = x.to(device)
+                y = y.to(device)
 
                 # Forward pass
-                y = model(x)
+                y_pred = model(x)
 
-                # Compute losses
-                train_loss = torch.zeros(1)
+                # Compute loss
+                train_loss = binary_cross_entropy(y_pred, y)
 
                 # Backpropagate and update weights
                 model.zero_grad()
@@ -107,35 +110,39 @@ class Solver(object):
 
                 tensorboard_writer.add_scalar('Train_loss', train_loss.item(), i_iter)
 
-            # Validate model
-            print("\nValidate model after epoch " + str(self.epoch) + '/' + str(num_epochs))
+            if not do_overfitting:
+                # Validate model
+                print("\nValidate model after epoch " + str(self.epoch) + '/' + str(num_epochs))
 
-            # Set model to evaluation mode
-            model.eval()
+                # Set model to evaluation mode
+                model.eval()
 
-            num_val_batches = 0
-            val_loss = 0
+                num_val_batches = 0
+                val_loss = 0
 
-            for batch in val_loader:
-                num_val_batches += 1
+                for batch in val_loader:
+                    num_val_batches += 1
 
-                x = batch
-                x = x.to(device)
+                    x, y = batch
+                    x = x.to(device)
+                    y = y.to(device)
 
-                y = model(x)
+                    # Forward pass
+                    y_pred = model(x)
 
-                current_val_loss = torch.zeros(1)
+                    # Compute loss
+                    current_val_loss = binary_cross_entropy_with_logits(y_pred, y)
 
                 val_loss += current_val_loss.item()
 
-            val_loss /= num_val_batches
+                val_loss /= num_val_batches
 
-            self.append_history({'val_loss': val_loss})
+                self.append_history({'val_loss': val_loss})
 
-            print('Avg Train Loss: ' + "{0:.6f}".format(train_loss_avg) +
-                  '   Val loss: ' + "{0:.6f}".format(val_loss) +
-                  "   - " + str(int((time.time() - t_start_epoch) * 1000)) + "ms" +
-                  "   time left: {}\n".format(time_left(t_start_training, n_iters, i_iter)))
+                print('Avg Train Loss: ' + "{0:.6f}".format(train_loss_avg) +
+                      '   Val loss: ' + "{0:.6f}".format(val_loss) +
+                      "   - " + str(int((time.time() - t_start_epoch) * 1000)) + "ms" +
+                      "   time left: {}\n".format(time_left(t_start_training, n_iters, i_iter)))
 
             # Save model and solver
             if save_after_epochs is not None and (self.epoch % save_after_epochs == 0):

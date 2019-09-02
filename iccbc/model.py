@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import abc
+import matplotlib.pyplot as plt
 
 
 class BaseModel(nn.Module):
@@ -24,8 +25,8 @@ class BaseModel(nn.Module):
 
 
 class WaveNet(BaseModel):
-    def __init__(self, n_blocks=3, n_layers_per_block=5, dilation_channels=32, skip_channels=32, residual_channels=32,
-                 out_channels=32):
+    def __init__(self, n_blocks=1, n_layers_per_block=1, dilation_channels=32, skip_channels=32, residual_channels=32,
+                 out_channels=256):
         super(WaveNet, self).__init__()
 
         self.skip_init = nn.Conv1d(1, skip_channels, 1)
@@ -53,7 +54,13 @@ class WaveNet(BaseModel):
         for i_block in range(len(self.blocks)):
             (x, skip) = self.blocks[i_block](x, skip)
 
-        return self.agg_layers(skip)
+        out = self.agg_layers(x)
+
+        # plt.plot(out[0,:,-1].cpu().detach().numpy())
+        # plt.show()
+
+        return out
+        # return self.softmax(skip)
 
     def generate(self, primer, samples=100):
 

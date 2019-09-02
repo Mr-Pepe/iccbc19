@@ -3,7 +3,7 @@ from iccbc.train import train
 import argparse
 
 DATASET_PATH = '../datasets/yesno'
-SAVE_PATH = '../saves/'
+SAVE_PATH = '../saves'
 
 config = Config({
     'use_cuda': True,

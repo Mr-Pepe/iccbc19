@@ -4,5 +4,5 @@ setup(
    name='iccbc',
    version='1.0',
    packages=['iccbc'],
-   install_requires=['torch', 'torchaudio', 'tensorboardX']
+   install_requires=['torch', 'torchaudio', 'tensorboardX', 'matplotlib']
 )

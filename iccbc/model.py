@@ -45,17 +45,32 @@ class WaveNet(BaseModel):
         )
         self.relu = nn.ReLU()
 
-
     def forward(self, x):
 
         skip = self.skip_init(x)
         x = self.x_init(x)
 
-
         for i_block in range(len(self.blocks)):
             (x, skip) = self.blocks[i_block](x, skip)
 
         return self.agg_layers(skip)
+
+    def generate(self, primer, samples=100):
+
+        # Check if in eval mode
+        if self.training:
+            raise Exception('Set model to eval mode before generating new sound.')
+
+        else:
+            sound = primer
+            for i_sample in range(samples):
+                pred = torch.argmax(self.forward(sound.float().view(1, 1, -1))[0, :, -1])
+                sound = torch.cat((sound, pred.float().view(1, -1)), dim=1)
+
+                if ((i_sample+1) % 100) == 0:
+                    print("\rGenerated {}/{} samples.".format(i_sample+1, samples), end='')
+
+        return sound
 
 
 class Block(nn.Module):

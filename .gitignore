@@ -1,5 +1,6 @@
 /datasets/**
 /saves/**
+/generated/**
 */**/__pycache__
 /tensorboard_log/**
 \.idea/

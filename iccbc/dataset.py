@@ -5,14 +5,14 @@ import torch
 import os
 import torchaudio as ta
 import matplotlib.pyplot as plt
-from iccbc.utils import moving_average, detect_leading_silence
+from iccbc.utils import detect_leading_silence
 
 
 class CustomDataset(Dataset):
     """ This custom datasets reads in all the audio files in a directory and lets
     you sample random sections from the dataset. Supports mp4 and wav for now.  """
 
-    def __init__(self, path, override=False, transform=MuLawEncoding()):
+    def __init__(self, path, override=False, transform=MuLawEncoding(), plot=False):
         """ The whole dataset is saved as a Pytorch tensor inside the directory with the name of the directory. If the
         file already exists the audio files are not read in again, unless the override option is set."""
         super(CustomDataset, self).__init__()
@@ -38,8 +38,9 @@ class CustomDataset(Dataset):
                         transformed = transform(waveform)
                         # Remove silence from beginning of track
                         transformed = remove_silence_start_end(transformed)
-                        # plt.plot(moving_average(transformed.t().numpy(), 10))
-                        # plt.show()
+                        if plot:
+                            plt.plot(transformed.t().numpy())
+                            plt.show()
                         self.data.append(transformed.float())
                         num_files += 1
 

@@ -67,7 +67,10 @@ class Solver(object):
         # Training
         for i_epoch in range(num_epochs):
             self.epoch += 1
-            print("Starting epoch {}".format(self.epoch))
+            if do_overfitting:
+                print("Starting epoch {}  ".format(self.epoch), end='')
+            else:
+                print("Starting epoch {}".format(self.epoch))
             t_start_epoch = time.time()
 
             # Set model to train mode

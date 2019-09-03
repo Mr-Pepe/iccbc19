@@ -12,7 +12,7 @@ class CustomDataset(Dataset):
     """ This custom datasets reads in all the audio files in a directory and lets
     you sample random sections from the dataset. Supports mp4 and wav for now.  """
 
-    def __init__(self, path, sequence_length=20000, override=False, transform=MuLawEncoding(), plot=False):
+    def __init__(self, path, sequence_length=20000, overwrite=True, transform=MuLawEncoding(), plot=False):
         """ The whole dataset is saved as a Pytorch tensor inside the directory with the name of the directory. If the
         file already exists the audio files are not read in again, unless the override option is set. Samples that are
         shorter than the given sequence length are omitted. """
@@ -23,7 +23,7 @@ class CustomDataset(Dataset):
         dir_name = os.path.basename(os.path.normpath(path))
 
         # Check for existence of preprocessed file
-        if os.path.isfile(os.path.join(path, '{}.pt'.format(dir_name))) and not override:
+        if os.path.isfile(os.path.join(path, '{}.pt'.format(dir_name))) and not overwrite:
             self.data = torch.load(os.path.join(os.path.join(path, '{}.pt'.format(dir_name))))
 
         else:
@@ -46,6 +46,8 @@ class CustomDataset(Dataset):
                             plt.plot(transformed.t().numpy())
                             plt.show()
 
+                        transformed = one_hot(transformed[0, :].int().long(), 256).float().view(256, -1)
+
                         if transformed.shape[1] > sequence_length:
                             self.data.append(transformed.float())
 
@@ -62,8 +64,8 @@ class CustomDataset(Dataset):
 
         start_idx = torch.randint(sound.shape[1] - self.sequence_length - 1, [1]).item()
 
-        x = sound[0, start_idx:start_idx+self.sequence_length].view(1, -1)
-        y = one_hot(sound[0, start_idx+1:start_idx+self.sequence_length+1].int().long(), 256).float().view(256, -1)
+        x = sound[:, start_idx:start_idx+self.sequence_length]
+        y = sound[:, start_idx+1:start_idx+self.sequence_length+1]
 
         return x, y
 

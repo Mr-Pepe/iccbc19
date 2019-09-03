@@ -30,7 +30,7 @@ def train(config):
         path=config.dataset_path,
         sequence_length=config.sequence_length,
         transform=ta.transforms.MuLawEncoding(),
-        override=False,
+        overwrite=config.overwrite,
         plot=False
     )
 
@@ -86,7 +86,7 @@ def train(config):
         n_residual_channels=config.n_residual_channels,
         n_out_channels=config.n_out_channels
     )
-    
+
     solver = Solver()
 
     if config.continue_training:

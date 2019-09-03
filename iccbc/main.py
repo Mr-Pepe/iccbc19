@@ -7,6 +7,7 @@ train_config = Config({
 
     # Data
     'dataset_path': '../datasets/yesno',
+    'overwrite':        True,           # Overwrite existing .pt file
     'num_train_regular':    58,       # Number of training samples for regular training
     'num_val_regular':      1,        # Number of validation samples for regular training
     'do_overfitting': False,             # Set overfit or regular training

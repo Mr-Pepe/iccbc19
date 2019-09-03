@@ -12,13 +12,15 @@ class CustomDataset(Dataset):
     """ This custom datasets reads in all the audio files in a directory and lets
     you sample random sections from the dataset. Supports mp4 and wav for now.  """
 
-    def __init__(self, path, sequence_length=20000, overwrite=True, transform=MuLawEncoding(), plot=False):
+    def __init__(self, path, sequence_length=20000, total_dilation=0,
+                 overwrite=True, transform=MuLawEncoding(), plot=False):
         """ The whole dataset is saved as a Pytorch tensor inside the directory with the name of the directory. If the
         file already exists the audio files are not read in again, unless the override option is set. Samples that are
         shorter than the given sequence length are omitted. """
         super(CustomDataset, self).__init__()
         self.data = []
         self.sequence_length = sequence_length
+        self.total_dilation = total_dilation
 
         dir_name = os.path.basename(os.path.normpath(path))
 
@@ -66,6 +68,7 @@ class CustomDataset(Dataset):
 
         x = sound[:, start_idx:start_idx+self.sequence_length]
         y = sound[:, start_idx+1:start_idx+self.sequence_length+1]
+        y = y[:, self.total_dilation:]
 
         return x, y
 

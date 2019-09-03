@@ -25,10 +25,13 @@ def train(config):
         kwargs = {}
         print("No GPU. Training on {}.".format(device))
 
-    print("Loading dataset from ".format(config.dataset_path))
+    total_dilation = sum([2 ** i for i in range(config.n_layers_per_block)]) * config.n_blocks
+
+    print("Loading dataset from {}".format(config.dataset_path))
     dataset = CustomDataset(
         path=config.dataset_path,
         sequence_length=config.sequence_length,
+        total_dilation=total_dilation,
         transform=ta.transforms.MuLawEncoding(),
         overwrite=config.overwrite,
         plot=False
@@ -80,6 +83,7 @@ def train(config):
     print("Initializing model and solver ...")
     model = WaveNet(
         n_blocks=config.n_blocks,
+        n_input_channels=config.n_input_channels,
         n_layers_per_block=config.n_layers_per_block,
         n_dilation_channels=config.n_dilation_channels,
         n_skip_channels=config.n_skip_channels,
@@ -88,6 +92,8 @@ def train(config):
     )
 
     solver = Solver()
+
+    print("Total receptive field is {} samples".format(total_dilation))
 
     if config.continue_training:
         print("Continuing training with model: {} and solver: {}".format(
@@ -117,4 +123,5 @@ def train(config):
                  save_after_epochs=config.save_interval,
                  save_path=config.save_path,
                  device=device,
-                 do_overfitting=config.do_overfitting)
+                 do_overfitting=config.do_overfitting,
+                 total_dilation=total_dilation)

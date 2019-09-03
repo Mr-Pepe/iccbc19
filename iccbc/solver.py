@@ -25,6 +25,7 @@ class Solver(object):
         model,
         train_config,
         tensorboard_path,
+        total_dilation,
         optim=None,
         num_epochs=10,
         max_train_time_s=None,
@@ -134,9 +135,7 @@ class Solver(object):
                     y_pred = model(x)
 
                     # Compute loss
-                    current_val_loss = binary_cross_entropy(y_pred, y)
-
-                val_loss += current_val_loss.item()
+                    val_loss = binary_cross_entropy(y_pred, y).item()
 
                 val_loss /= num_val_batches
 

@@ -25,12 +25,12 @@ class BaseModel(nn.Module):
 
 
 class WaveNet(BaseModel):
-    def __init__(self, n_blocks=2, n_layers_per_block=5, n_dilation_channels=32, n_skip_channels=2, n_residual_channels=32,
-                 n_out_channels=64):
+    def __init__(self, n_input_channels=256, n_blocks=2, n_layers_per_block=5, n_dilation_channels=32,
+                 n_skip_channels=32, n_residual_channels=32, n_out_channels=64):
         super(WaveNet, self).__init__()
 
-        self.skip_init = nn.Conv1d(1, n_skip_channels, 1)
-        self.x_init = nn.Conv1d(1, n_residual_channels, 1)
+        self.in_layer = nn.Conv1d(in_channels=n_input_channels, out_channels=n_residual_channels,
+                                  kernel_size=1)
 
         self.blocks = nn.ModuleList()
 
@@ -39,7 +39,7 @@ class WaveNet(BaseModel):
 
         self.agg_layers = nn.Sequential(
             nn.ReLU(),
-            nn.Conv1d(n_residual_channels, n_out_channels, 1),
+            nn.Conv1d(n_skip_channels, n_out_channels, 1),
             nn.ReLU(),
             nn.Conv1d(n_out_channels, 256, 1),
             nn.Softmax(dim=1)
@@ -48,13 +48,13 @@ class WaveNet(BaseModel):
 
     def forward(self, x):
 
-        skip = self.skip_init(x)
-        x = self.x_init(x)
+        residual = self.in_layer(x)
+        skip = None
 
         for i_block in range(len(self.blocks)):
-            (x, skip) = self.blocks[i_block](x, skip)
+            (residual, skip) = self.blocks[i_block](residual, skip)
 
-        out = self.agg_layers(x)
+        out = self.agg_layers(skip)
 
         # plt.plot(out[0,:,-1].cpu().detach().numpy())
         # plt.show()
@@ -100,7 +100,7 @@ class Layer(nn.Module):
     def __init__(self, residual_channels, skip_channels, dilation_channels, dilation):
         super(Layer, self).__init__()
 
-        self.padding = nn.ConstantPad1d((dilation, 0), 0)
+        self.dilation = dilation
 
         self.gate = nn.Conv1d(residual_channels, dilation_channels, 2, dilation=dilation, stride=1)
         self.filter = nn.Conv1d(residual_channels, dilation_channels, 2, dilation=dilation, stride=1)
@@ -113,11 +113,13 @@ class Layer(nn.Module):
 
     def forward(self, x, skip_in):
 
-        x_pad = self.padding(x)
-        out = self.tanh(self.filter(x_pad)) * self.sigm(self.gate(x_pad))
+        out = self.tanh(self.filter(x)) * self.sigm(self.gate(x))
 
-        skip_out = self.skip_squash(out) + skip_in
+        if skip_in is None:
+            skip_out = self.skip_squash(out)
+        else:
+            skip_out = self.skip_squash(out) + skip_in[:, :, self.dilation:]
 
-        residual_out = self.residual_squash(out) + x
+        residual_out = self.residual_squash(out) + x[:, :, self.dilation:]
 
         return residual_out, skip_out

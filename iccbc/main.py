@@ -12,6 +12,7 @@ train_config = Config({
     'do_overfitting': False,             # Set overfit or regular training
     'num_train_overfit':    2,          # Number of training samples for overfitting test runs
     'num_workers': 4,                   # Number of workers for data loading
+    'sequence_length': 20000,           # Length of sequences that are sampled from the dataset
 
     # Training continuation
     'continue_training':   False,      # Specify whether to continue training with an existing model and solver

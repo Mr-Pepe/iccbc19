@@ -12,11 +12,13 @@ class CustomDataset(Dataset):
     """ This custom datasets reads in all the audio files in a directory and lets
     you sample random sections from the dataset. Supports mp4 and wav for now.  """
 
-    def __init__(self, path, override=False, transform=MuLawEncoding(), plot=False):
+    def __init__(self, path, sequence_length=20000, override=False, transform=MuLawEncoding(), plot=False):
         """ The whole dataset is saved as a Pytorch tensor inside the directory with the name of the directory. If the
-        file already exists the audio files are not read in again, unless the override option is set."""
+        file already exists the audio files are not read in again, unless the override option is set. Samples that are
+        shorter than the given sequence length are omitted. """
         super(CustomDataset, self).__init__()
         self.data = []
+        self.sequence_length = sequence_length
 
         dir_name = os.path.basename(os.path.normpath(path))
 
@@ -36,21 +38,32 @@ class CustomDataset(Dataset):
                     if fname.lower().endswith(('mp3', 'wav')):
                         waveform, sample_rate = ta.load(os.path.join(path, fname))
                         transformed = transform(waveform)
+
                         # Remove silence from beginning of track
                         transformed = remove_silence_start_end(transformed)
+
                         if plot:
                             plt.plot(transformed.t().numpy())
                             plt.show()
-                        self.data.append(transformed.float())
+
+                        if transformed.shape[1] > sequence_length:
+                            self.data.append(transformed.float())
+
                         num_files += 1
 
             if self.data:
                 torch.save(self.data, os.path.join(path, '{}.pt'.format(dir_name)))
 
     def __getitem__(self, idx):
+        """ Get one sequence from the dataset. idx determines the entry from the dataset. The sequence from that
+        entry is sampled randomly. THe output is the same as the input but shifted by 1. """
 
-        x = self.data[idx][0,:-1].view(1, -1)
-        y = one_hot(self.data[idx][0, 1:].int().long(), 256).float().view(256, -1)
+        sound = self.data[idx]
+
+        start_idx = torch.randint(sound.shape[1] - self.sequence_length - 1, [1]).item()
+
+        x = sound[0, start_idx:start_idx+self.sequence_length].view(1, -1)
+        y = one_hot(sound[0, start_idx+1:start_idx+self.sequence_length+1].int().long(), 256).float().view(256, -1)
 
         return x, y
 

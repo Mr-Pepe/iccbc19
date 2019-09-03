@@ -25,23 +25,23 @@ class BaseModel(nn.Module):
 
 
 class WaveNet(BaseModel):
-    def __init__(self, n_blocks=1, n_layers_per_block=1, dilation_channels=32, skip_channels=32, residual_channels=32,
-                 out_channels=256):
+    def __init__(self, n_blocks=2, n_layers_per_block=5, n_dilation_channels=32, n_skip_channels=2, n_residual_channels=32,
+                 n_out_channels=64):
         super(WaveNet, self).__init__()
 
-        self.skip_init = nn.Conv1d(1, skip_channels, 1)
-        self.x_init = nn.Conv1d(1, residual_channels, 1)
+        self.skip_init = nn.Conv1d(1, n_skip_channels, 1)
+        self.x_init = nn.Conv1d(1, n_residual_channels, 1)
 
         self.blocks = nn.ModuleList()
 
         for i_block in range(n_blocks):
-            self.blocks.append(Block(n_layers_per_block, residual_channels, skip_channels, dilation_channels))
+            self.blocks.append(Block(n_layers_per_block, n_residual_channels, n_skip_channels, n_dilation_channels))
 
         self.agg_layers = nn.Sequential(
             nn.ReLU(),
-            nn.Conv1d(skip_channels, out_channels, 1),
+            nn.Conv1d(n_residual_channels, n_out_channels, 1),
             nn.ReLU(),
-            nn.Conv1d(out_channels, 256, 1),
+            nn.Conv1d(n_out_channels, 256, 1),
             nn.Softmax(dim=1)
         )
         self.relu = nn.ReLU()

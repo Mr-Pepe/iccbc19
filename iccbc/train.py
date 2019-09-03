@@ -78,7 +78,15 @@ def train(config):
     )
 
     print("Initializing model and solver ...")
-    model = WaveNet()
+    model = WaveNet(
+        n_blocks=config.n_blocks,
+        n_layers_per_block=config.n_layers_per_block,
+        n_dilation_channels=config.n_dilation_channels,
+        n_skip_channels=config.n_skip_channels,
+        n_residual_channels=config.n_residual_channels,
+        n_out_channels=config.n_out_channels
+    )
+    
     solver = Solver()
 
     if config.continue_training:

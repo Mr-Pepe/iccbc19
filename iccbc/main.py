@@ -25,7 +25,15 @@ train_config = Config({
     'batch_size': 1,
     'learning_rate': 1e-3,
     'betas': (0.9, 0.999),              # Beta coefficients for ADAM
-    'padding': 512,                     # Needs to be a power of 2
+
+    # Model parameters
+    'n_blocks': 2,                      # Number of WaveNet blocks
+    'n_layers_per_block': 5,            # Number of dilated layers per block, dilation doubles with every layer
+    'n_dilation_channels': 32,          # Number of channels for the gated convolution
+    'n_skip_channels': 32,              # Number of channels for the skip connection
+    'n_residual_channels': 32,          # Number of channels for the residual path
+    'n_out_channels': 32,               # Number of channels for the aggregation
+
 
     # Logging
     'log_interval': 1,           # Number of mini-batches after which to print training loss

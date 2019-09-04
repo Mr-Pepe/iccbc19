@@ -29,6 +29,7 @@ class WaveNet(BaseModel):
                  n_skip_channels=32, n_residual_channels=32, n_out_channels=64):
         super(WaveNet, self).__init__()
 
+        self.n_input_channels = n_input_channels
         self.in_layer = nn.Conv1d(in_channels=n_input_channels, out_channels=n_residual_channels,
                                   kernel_size=1)
 
@@ -69,10 +70,11 @@ class WaveNet(BaseModel):
             raise Exception('Set model to eval mode before generating new sound.')
 
         else:
-            sound = primer
+
+            sound = primer.clone().detach()
             for i_sample in range(samples):
-                pred = torch.argmax(self.forward(sound.float().view(1, 1, -1))[0, :, -1])
-                sound = torch.cat((sound, pred.float().view(1, -1)), dim=1)
+                pred = self.forward(sound.float().view(1, self.n_input_channels, -1))[0, :, -1]
+                sound = torch.cat((sound, pred.float().detach().view(-1, 1)), dim=1)
 
                 if ((i_sample+1) % 100) == 0:
                     print("\rGenerated {}/{} samples.".format(i_sample+1, samples), end='')

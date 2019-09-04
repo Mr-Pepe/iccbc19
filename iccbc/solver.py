@@ -135,7 +135,7 @@ class Solver(object):
                     y_pred = model(x)
 
                     # Compute loss
-                    val_loss = binary_cross_entropy(y_pred, y).item()
+                    val_loss += binary_cross_entropy(y_pred, y).item()
 
                 val_loss /= num_val_batches
 

@@ -48,8 +48,7 @@ class CustomDataset(Dataset):
                             plt.plot(transformed.t().numpy())
                             plt.show()
 
-                        transformed = one_hot(transformed[0, :].int().long(), 256).float().view(256, -1)
-
+                        transformed = one_hot(transformed[0, :].int().long(), 256).float().T
                         if transformed.shape[1] > sequence_length:
                             self.data.append(transformed.float())
 

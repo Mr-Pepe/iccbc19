@@ -36,19 +36,24 @@ def evaluate(config):
     model.load_state_dict(torch.load('../saves/train20190903160509/model4'))
     model.eval()
 
-    transformed, _ = dataset[0]
+    primer, _ = dataset[1]
+    primer = primer[:, :20000]
 
-    primer = transformed[:, :3000]
-
-    if torch.cuda.is_available():
+    if config.use_cuda and torch.cuda.is_available():
         model.to('cuda')
         primer = primer.to('cuda')
     # plt.plot(primer.cpu().t().numpy())
     # plt.show()
 
-    generated = model.generate(primer, 1000)
+    generated = model.generate(primer, 5000)
+
+    generated = generated.argmax(dim=0)
 
     plt.plot(generated.cpu().t().numpy())
+    plt.show()
+
+    decoded = MuLawDecoding()(generated.cpu())
+    plt.plot(decoded.cpu().t().numpy())
     plt.show()
 
     # a, b = ta.load('/home/felipe/Projects/iccbc19/datasets/yesno/0_0_0_1_0_0_0_1.wav')

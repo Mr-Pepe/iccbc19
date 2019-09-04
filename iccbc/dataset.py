@@ -13,7 +13,7 @@ class CustomDataset(Dataset):
     you sample random sections from the dataset. Supports mp4 and wav for now.  """
 
     def __init__(self, path, sequence_length=20000, total_dilation=0,
-                 overwrite=True, transform=MuLawEncoding(), plot=False):
+                 overwrite=True, transform=MuLawEncoding(), plot=False, shift=1):
         """ The whole dataset is saved as a Pytorch tensor inside the directory with the name of the directory. If the
         file already exists the audio files are not read in again, unless the override option is set. Samples that are
         shorter than the given sequence length are omitted. """
@@ -21,6 +21,7 @@ class CustomDataset(Dataset):
         self.data = []
         self.sequence_length = sequence_length
         self.total_dilation = total_dilation
+        self.shift = shift
 
         dir_name = os.path.basename(os.path.normpath(path))
 
@@ -49,6 +50,7 @@ class CustomDataset(Dataset):
                             plt.show()
 
                         transformed = one_hot(transformed[0, :].int().long(), 256).float().T
+
                         if transformed.shape[1] > sequence_length:
                             self.data.append(transformed.float())
 
@@ -63,10 +65,10 @@ class CustomDataset(Dataset):
 
         sound = self.data[idx]
 
-        start_idx = torch.randint(sound.shape[1] - self.sequence_length - 1, [1]).item()
+        start_idx = torch.randint(sound.shape[1] - self.sequence_length - self.shift, [1]).item()
 
         x = sound[:, start_idx:start_idx+self.sequence_length]
-        y = sound[:, start_idx+1:start_idx+self.sequence_length+1]
+        y = sound[:, start_idx+self.shift:start_idx+self.sequence_length+self.shift]
         y = y[:, self.total_dilation:]
 
         return x, y

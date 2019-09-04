@@ -34,7 +34,8 @@ def train(config):
         total_dilation=total_dilation,
         transform=ta.transforms.MuLawEncoding(),
         overwrite=config.overwrite,
-        plot=False
+        plot=False,
+        shift=config.shift
     )
 
     if config.batch_size > len(dataset):

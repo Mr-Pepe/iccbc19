@@ -15,6 +15,7 @@ config = Config({
     'num_train_overfit':    1,          # Number of training samples for overfitting test runs
     'num_workers': 4,                   # Number of workers for data loading
     'sequence_length': 20000,           # Length of sequences that are sampled from the dataset
+    'shift': 1,                         # How far into the future the prediction should be
 
     # Training continuation
     'continue_training':   False,      # Specify whether to continue training with an existing model and solver

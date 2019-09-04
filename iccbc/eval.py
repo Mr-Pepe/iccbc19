@@ -20,7 +20,8 @@ def evaluate(config):
         total_dilation=total_dilation,
         transform=ta.transforms.MuLawEncoding(),
         overwrite=config.overwrite,
-        plot=False
+        plot=False,
+        shift=config.shift
     )
 
     print("Initializing model ...")
@@ -33,11 +34,11 @@ def evaluate(config):
         n_residual_channels=config.n_residual_channels,
         n_out_channels=config.n_out_channels
     )
-    model.load_state_dict(torch.load('../saves/train20190903160509/model4'))
+    model.load_state_dict(torch.load('../saves/train20190904125244/model300'))
     model.eval()
 
-    primer, _ = dataset[1]
-    primer = primer[:, :20000]
+    primer, _ = dataset[0]
+    primer = primer[:, :3510].clone()
 
     if config.use_cuda and torch.cuda.is_available():
         model.to('cuda')
@@ -45,7 +46,7 @@ def evaluate(config):
     # plt.plot(primer.cpu().t().numpy())
     # plt.show()
 
-    generated = model.generate(primer, 5000)
+    generated = model.generate(primer, 10)
 
     generated = generated.argmax(dim=0)
 

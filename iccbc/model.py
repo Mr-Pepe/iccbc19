@@ -71,7 +71,7 @@ class WaveNet(BaseModel):
 
         else:
 
-            sound = primer.clone().detach()
+            sound = primer
             for i_sample in range(samples):
                 pred = self.forward(sound.float().view(1, self.n_input_channels, -1))[0, :, -1]
                 sound = torch.cat((sound, pred.float().detach().view(-1, 1)), dim=1)

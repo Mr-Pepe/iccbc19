@@ -1,5 +1,6 @@
 /datasets/**
 /saves/**
+/saves_SOM/**
 /generated/**
 */**/__pycache__
 /tensorboard_log/**

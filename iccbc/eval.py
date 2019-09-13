@@ -1,10 +1,12 @@
 import torchaudio as ta
 import torch
 from iccbc.model import WaveNet
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 from iccbc.dataset import CustomDataset
 from torchaudio.transforms import MuLawDecoding
-
+from iccbc.neuromorphic_encoding import neuromorphic_encoding
 
 def evaluate(config):
 
@@ -14,6 +16,7 @@ def evaluate(config):
     print("Total receptive field is {} samples".format(total_dilation))
 
     print("Loading dataset from {}".format(config.dataset_path))
+    """
     dataset = CustomDataset(
         path=config.dataset_path,
         sequence_length=config.sequence_length,
@@ -23,6 +26,8 @@ def evaluate(config):
         plot=False,
         shift=config.shift
     )
+    """
+    dataset = neuromorphic_encoding(main_config=config)
 
     print("Initializing model ...")
     model = WaveNet(

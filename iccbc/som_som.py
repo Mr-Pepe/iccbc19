@@ -19,6 +19,20 @@ class SOM(nn.Module):
     """
     def __init__(self, m, n, dim, niter, alpha=None, sigma=None):
         super(SOM, self).__init__()
+        """
+        Initializes all necessary components of the computational
+        Graph.
+ 
+        m X n are the dimensions of the SOM. 'n_iterations' should
+        should be an integer denoting the number of iterations undergone
+        while training.
+        'dim' is the dimensionality of the training inputs.
+        'alpha' is a number denoting the initial time(iteration no)-based
+        learning rate. Default value is 0.3
+        'sigma' is the the initial neighbourhood value, denoting
+        the radius of influence of the BMU while training. By default, its
+        taken to be half of max(m, n).
+        """
         self.m = m
         self.n = n
         self.dim = dim
@@ -78,5 +92,6 @@ class SOM(nn.Module):
         new_weights = torch.add(self.weights, delta)
         self.weights = new_weights
 
+        #print(x.shape, torch.zeros_like(x).shape)
         #print(torch.min(dists, 0)[0])
-        return float(torch.min(dists, 0)[0]) #EDIT: Return Eucl Dist
+        return ((float(torch.min(dists, 0)[0]))**2, (float(self.pdist(x.unsqueeze(0), torch.zeros_like(x).unsqueeze(0))))**2) #EDIT: Return Eucl Dist

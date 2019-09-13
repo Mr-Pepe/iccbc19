@@ -5,6 +5,7 @@ from iccbc.model import WaveNet
 from iccbc.solver import Solver
 from iccbc.dataset import CustomDataset
 from torch.utils.data import DataLoader, SequentialSampler, SubsetRandomSampler
+from iccbc.neuromorphic_encoding import neuromorphic_encoding
 
 
 def train(config):
@@ -28,6 +29,7 @@ def train(config):
     total_dilation = sum([2 ** i for i in range(config.n_layers_per_block)]) * config.n_blocks
 
     print("Loading dataset from {}".format(config.dataset_path))
+    """
     dataset = CustomDataset(
         path=config.dataset_path,
         sequence_length=config.sequence_length,
@@ -37,6 +39,8 @@ def train(config):
         plot=False,
         shift=config.shift
     )
+    """
+    dataset = neuromorphic_encoding(main_config=config)
 
     if config.batch_size > len(dataset):
         raise Exception('Batch size bigger than the dataset.')

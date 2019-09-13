@@ -1,6 +1,8 @@
 import torch
 import torch.nn as nn
 import abc
+import matplotlib
+matplotlib.use('agg')
 import matplotlib.pyplot as plt
 
 

@@ -9,6 +9,7 @@ Created on Wed Sep  4 22:09:14 2019
 import torch
 import torchaudio as ta
 from matplotlib import pyplot as plt
+import math
 
 """
 no mu transform
@@ -53,13 +54,17 @@ def generate_mfccs(MFCC_transform, waveform, sample_rate, plot_mfcc = False):
 def auditory_frontend(waveform, sample_rate, frontend_config):
     """Perform auditory frontend operations on waveform"""
     
+    frame_stride = 1/sample_rate
+    if not frontend_config.use_samplerate_for_stride:
+        frame_stride = math.floor(frontend_config.frame_stride / frame_stride)*frame_stride + frontend_config.frame_stride #smallest multiple of sample_rate larger than frame stride (keep exact multiple.)
+    
     if frontend_config.pre_emphasis:
         waveform = pre_emphasize(waveform, frontend_config.preemphasis_coefficient)
     
     melkwargs = dict({
             #'wkwargs': wkwargs,
             'win_length': int(frontend_config.frame_length * sample_rate),
-            'hop_length': int(frontend_config.frame_stride * sample_rate),
+            'hop_length': int(frame_stride * sample_rate),
             'n_fft': frontend_config.n_fft,
             #'n_filt': 40
             })
@@ -67,5 +72,11 @@ def auditory_frontend(waveform, sample_rate, frontend_config):
     MFCC_transform = ta.transforms.MFCC(sample_rate = sample_rate, n_mfcc = frontend_config.n_filt, melkwargs=melkwargs)    
     mfcc = generate_mfccs(MFCC_transform, waveform, sample_rate, frontend_config.plot_mfcc)
     
+    if frontend_config.standardize_mfccs:
+        for i in range(mfcc.shape[1]):
+            mean = mfcc[0,i,:].mean()
+            std = mfcc[0,i,:].std()
+            mfcc[0,i,:] = (mfcc[0,i,:] - mean) / std
+    #print([mfcc[0,i,:].mean() for i in range(mfcc.shape[1])])
         
     return mfcc

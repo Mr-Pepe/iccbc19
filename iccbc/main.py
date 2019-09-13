@@ -11,9 +11,9 @@ config = Config({
     'overwrite':        False,           # Overwrite existing .pt file
     'num_train_regular':    56,       # Number of training samples for regular training
     'num_val_regular':      2,        # Number of validation samples for regular training
-    'do_overfitting': False,             # Set overfit or regular training
+    'do_overfitting': True,             # Set overfit or regular training
     'num_train_overfit':    1,          # Number of training samples for overfitting test runs
-    'num_workers': 4,                   # Number of workers for data loading
+    'num_workers': 0,                   # Number of workers for data loading
     'sequence_length': 20000,           # Length of sequences that are sampled from the dataset
     'shift': 1,                         # How far into the future the prediction should be
 
@@ -30,7 +30,7 @@ config = Config({
     'betas': (0.9, 0.999),              # Beta coefficients for ADAM
 
     # Model parameters
-    'n_input_channels': 256,
+    'n_input_channels': 400,
     'n_blocks': 2,                      # Number of WaveNet blocks
     'n_layers_per_block': 10,            # Number of dilated layers per block, dilation doubles with every layer
     'n_dilation_channels': 32,          # Number of channels for the gated convolution
